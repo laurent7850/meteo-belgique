@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import type { ChangeEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, Plus, Pencil, Trash2, Settings, FileText, MapPin,
-  Users, Activity, Clock, Check
+  Users, Activity, Clock, Check, X
 } from 'lucide-react';
-import type { City } from '../types';
-import { isAuthenticated, logout, getUsername } from '../utils/auth';
-import { loadCities, saveCities } from '../utils/cities';
-import Modal from '../components/Modal';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import type { City } from '@/types';
+import { isAuthenticated, logout, getUsername } from '@/utils/auth';
+import { loadCities, saveCities } from '@/utils/cities';
 
 interface NewCity {
   name: string;
@@ -140,7 +143,11 @@ const Admin: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      <nav className="bg-black/30 backdrop-blur-xl border-b border-white/10">
+      <motion.nav
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-black/30 backdrop-blur-xl border-b border-white/10"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 text-white font-semibold">
             <span className="text-2xl">🇧🇪</span>
@@ -151,24 +158,28 @@ const Admin: React.FC = () => {
               <Users className="w-4 h-4" />
               {getUsername()}
             </span>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-red-500/30 rounded-lg transition-all"
-            >
+            <Button variant="outline" size="sm" onClick={handleLogout} className="text-red-400 border-red-500/30 hover:bg-red-500/10">
               <LogOut className="w-4 h-4" />
               Déconnexion
-            </button>
+            </Button>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {notification && (
-          <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 flex items-center gap-2">
-            <Check className="w-5 h-5" />
-            {notification}
-          </div>
-        )}
+        <AnimatePresence>
+          {notification && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 flex items-center gap-2"
+            >
+              <Check className="w-5 h-5" />
+              {notification}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((stat) => (
@@ -320,71 +331,89 @@ const Admin: React.FC = () => {
         )}
       </div>
 
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Ajouter une ville">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Nom de la ville *</label>
-            <input
-              type="text"
-              value={newCity.name}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setNewCity({ ...newCity, name: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-yellow-400/50"
-              placeholder="Ex: Mons"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Région *</label>
-            <select
-              value={newCity.region}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewCity({ ...newCity, region: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-yellow-400/50"
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
             >
-              <option value="">Sélectionner une région</option>
-              <option value="Bruxelles-Capitale">Bruxelles-Capitale</option>
-              <option value="Flandre">Flandre</option>
-              <option value="Wallonie">Wallonie</option>
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Latitude *</label>
-              <input
-                type="number"
-                step="0.0001"
-                value={newCity.lat}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setNewCity({ ...newCity, lat: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-yellow-400/50"
-                placeholder="50.4542"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Longitude *</label>
-              <input
-                type="number"
-                step="0.0001"
-                value={newCity.lon}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setNewCity({ ...newCity, lon: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-yellow-400/50"
-                placeholder="3.9523"
-              />
-            </div>
-          </div>
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={() => setShowModal(false)}
-              className="flex-1 px-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-all"
-            >
-              Annuler
-            </button>
-            <button
-              onClick={handleAddCity}
-              className="flex-1 px-4 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-900 font-medium rounded-xl hover:shadow-lg hover:shadow-yellow-500/30 transition-all"
-            >
-              Ajouter
-            </button>
-          </div>
-        </div>
-      </Modal>
+              <Card className="p-0">
+                <div className="flex items-center justify-between p-6 border-b border-white/10">
+                  <h3 className="text-xl font-semibold text-white">Ajouter une ville</h3>
+                  <Button variant="ghost" size="icon" onClick={() => setShowModal(false)}>
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Nom de la ville *</label>
+                    <Input
+                      type="text"
+                      value={newCity.name}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setNewCity({ ...newCity, name: e.target.value })}
+                      placeholder="Ex: Mons"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Région *</label>
+                    <select
+                      value={newCity.region}
+                      onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewCity({ ...newCity, region: e.target.value })}
+                      className="flex h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:outline-none focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20"
+                    >
+                      <option value="">Sélectionner une région</option>
+                      <option value="Bruxelles-Capitale">Bruxelles-Capitale</option>
+                      <option value="Flandre">Flandre</option>
+                      <option value="Wallonie">Wallonie</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Latitude *</label>
+                      <Input
+                        type="number"
+                        step="0.0001"
+                        value={newCity.lat}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setNewCity({ ...newCity, lat: e.target.value })}
+                        placeholder="50.4542"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Longitude *</label>
+                      <Input
+                        type="number"
+                        step="0.0001"
+                        value={newCity.lon}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setNewCity({ ...newCity, lon: e.target.value })}
+                        placeholder="3.9523"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <Button variant="secondary" className="flex-1" onClick={() => setShowModal(false)}>
+                      Annuler
+                    </Button>
+                    <Button className="flex-1" onClick={handleAddCity}>
+                      Ajouter
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

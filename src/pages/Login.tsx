@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User, ArrowLeft } from 'lucide-react';
-import { login } from '../utils/auth';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Eye, EyeOff, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { login } from '@/utils/auth';
 
 interface FormData {
   username: string;
@@ -40,48 +45,76 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl mb-6 shadow-lg shadow-yellow-500/20">
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
+        <Card className="p-8">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-center mb-8"
+          >
+            <motion.div
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl mb-6 shadow-lg shadow-yellow-500/20"
+            >
               <Lock className="w-10 h-10 text-slate-900" />
-            </div>
+            </motion.div>
             <h1 className="text-2xl font-semibold text-white mb-2">Espace Administrateur</h1>
             <p className="text-gray-400">Météo Belgique - Panneau de gestion</p>
-          </div>
+          </motion.div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm flex items-center gap-2">
-              <span>❌</span>
-              {error}
-            </div>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm flex items-center gap-2"
+              >
+                <span>❌</span>
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
               <label className="block text-sm text-gray-400 mb-2">Nom d'utilisateur</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
+                <Input
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20 transition-all"
+                  className="pl-12"
                   placeholder="Entrez votre identifiant"
                   required
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
               <label className="block text-sm text-gray-400 mb-2">Mot de passe</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
+                <Input
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20 transition-all"
+                  className="pl-12 pr-12"
                   placeholder="Entrez votre mot de passe"
                   required
                 />
@@ -93,53 +126,72 @@ const Login: React.FC = () => {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="flex items-center justify-between">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+              className="flex items-center justify-between"
+            >
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formData.remember}
                   onChange={(e) => setFormData({ ...formData, remember: e.target.checked })}
-                  className="w-4 h-4 rounded border-white/20 bg-white/5 text-yellow-400 focus:ring-yellow-400/50"
+                  className={cn(
+                    "w-4 h-4 rounded border-white/20 bg-white/5 text-yellow-400",
+                    "focus:ring-yellow-400/50 focus:ring-offset-0"
+                  )}
                 />
                 <span className="text-sm text-gray-400">Se souvenir de moi</span>
               </label>
-            </div>
+            </motion.div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-slate-900 font-semibold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/30 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
             >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
-                  Connexion...
-                </>
-              ) : (
-                <>
-                  <Lock className="w-5 h-5" />
-                  Se connecter
-                </>
-              )}
-            </button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Connexion...
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-5 h-5" />
+                    Se connecter
+                  </>
+                )}
+              </Button>
+            </motion.div>
           </form>
 
-          <Link
-            to="/"
-            className="flex items-center justify-center gap-2 mt-6 text-gray-400 hover:text-white transition-colors"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
           >
-            <ArrowLeft className="w-4 h-4" />
-            Retour au site météo
-          </Link>
+            <Link to="/">
+              <Button variant="ghost" className="w-full mt-6">
+                <ArrowLeft className="w-4 h-4" />
+                Retour au site météo
+              </Button>
+            </Link>
 
-          <p className="mt-6 pt-6 border-t border-white/10 text-center text-xs text-gray-500">
-            <Lock className="w-3 h-3 inline mr-1" />
-            Connexion sécurisée
-          </p>
-        </div>
-      </div>
+            <p className="mt-6 pt-6 border-t border-white/10 text-center text-xs text-gray-500">
+              <Lock className="w-3 h-3 inline mr-1" />
+              Connexion sécurisée
+            </p>
+          </motion.div>
+        </Card>
+      </motion.div>
     </div>
   );
 };
